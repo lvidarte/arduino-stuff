@@ -5,7 +5,7 @@ import Tkinter as tk
 from itertools import cycle
 
 root = tk.Tk()
-root.title('Button')
+root.title('Button On/Off')
 conn = serial.Serial('/dev/ttyACM0', 9600)
 
 states = ['Off', 'On']

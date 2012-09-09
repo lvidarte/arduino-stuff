@@ -1,3 +1,4 @@
+/* vim: set ft=c : */
 
 int speaker = 8;
 

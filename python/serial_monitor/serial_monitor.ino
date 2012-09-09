@@ -1,3 +1,5 @@
+/* vim: set ft=c : */
+
 int n = 0;
 char c;
 

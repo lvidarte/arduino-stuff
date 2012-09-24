@@ -1,6 +1,6 @@
 /* vim: set ft=c : */
 
-int leds[] = {3, 6, 9};
+int leds[] = {9, 6, 3};
 
 int pin = 0;
 int brightness = 0;

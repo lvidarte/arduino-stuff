@@ -188,7 +188,7 @@ const int notes[] = {
     NOTE_DS8
 };
 
-int speakerPin = 7;
+int speakerPin = 12;
 
 void setup() {
     Serial.begin(9600);

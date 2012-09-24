@@ -2,7 +2,6 @@ from tornado import ioloop, web, websocket
 import serial
 
 conn = serial.Serial('/dev/ttyACM0', 9600)
-websocket_clients = []
 
 
 class DimmerHandler(web.RequestHandler):
@@ -10,19 +9,27 @@ class DimmerHandler(web.RequestHandler):
         self.render('dimmer.html')
 
 class DimmerWebSocketHandler(websocket.WebSocketHandler):
+
+    # Static variables
+    clients = []
+    last_message = "0"
+
     def open(self):
-        websocket_clients.append(self)
-        print "Websocket opened"
+        DimmerWebSocketHandler.clients.append(self)
+        self.write_message(DimmerWebSocketHandler.last_message)
+        print "Websocket opened", DimmerWebSocketHandler.last_message
 
     def on_message(self, message):
-        for client in websocket_clients:
-            conn.write(chr(int(message)))
-            client.write_message(message)
+        DimmerWebSocketHandler.last_message = message
+        conn.write(chr(int(message)))
+        for client in DimmerWebSocketHandler.clients:
+            if client != self:
+                client.write_message(message)
         print "Message:", message
 
     def on_close(self):
-        if websocket_clients:
-            websocket_clients.remove(self)
+        if DimmerWebSocketHandler.clients:
+            DimmerWebSocketHandler.clients.remove(self)
         print "Websocket closed"
 
 

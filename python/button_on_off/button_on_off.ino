@@ -1,6 +1,6 @@
 /* vim: set ft=c : */
 
-int led = 13;
+int led = 3;
 int state = 0;
 
 void setup() {

@@ -3,15 +3,15 @@
 /**
  *  Mini version of Simon (1978)
  *
- *  Connect leds on 8, 10, 12
- *  Connect switches on 2, 4, 6
- *  Connect speaker on 7
+ *  Connect leds on 3, 6, 9
+ *  Connect switches on 2, 4, 7
+ *  Connect speaker on 12
  */
 
 const int totalLeds = 3;
-const int ledsPines[totalLeds] = {8, 10, 12};
-const int buttonsPines[totalLeds] = {2, 4, 6};
-const int speakerPin = 7;
+const int ledsPines[totalLeds] = {9, 6, 3};
+const int buttonsPines[totalLeds] = {7, 4, 2};
+const int speakerPin = 12;
 const int ledsSounds[totalLeds] = {659, 1109, 1760}; // E, C#, A
 const int gameOverSound = 330;
 const int winSound = 2093;

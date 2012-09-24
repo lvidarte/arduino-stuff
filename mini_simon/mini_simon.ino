@@ -3,13 +3,13 @@
 /**
  *  Mini version of Simon (1978)
  *
- *  Connect leds on 8, 10, 12
- *  Connect switches on 2, 4, 6
+ *  Connect leds on 3, 6, 9
+ *  Connect switches on 2, 4, 7
  */
 
 const int totalLeds = 3;
-const int leds[totalLeds] = {8, 10, 12};
-const int buttons[totalLeds] = {2, 4, 6};
+const int leds[totalLeds] = {9, 6, 3};
+const int buttons[totalLeds] = {7, 4, 2};
 
 boolean done;
 boolean gameOver = false;

@@ -1,6 +1,6 @@
 /* vim: set ft=c : */
 
-int speaker = 8;
+int speaker = 12;
 
 void setup() {
   pinMode(speaker, OUTPUT);

@@ -6,13 +6,14 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
-            var ws = new WebSocket("ws://10.0.5.49:8888/dimmer");
+            var ws = new WebSocket("ws://127.0.0.1:8888/dimmer");
             ws.onmessage = function(event) {
                 var value = event.data;
                 $('#dimmer').val(value);
                 $('#dimmer_value').html(value);
+                $('#messages').prepend(value + '\n');
             }
-            $('#dimmer').change(function (){
+            $('#dimmer').change(function() {
                 ws.send(this.value);
                 $('#dimmer_value').html(this.value);
             });
@@ -22,5 +23,6 @@
 <body>
     <input type="range" id="dimmer" min="0" max="255" value="0" style="width:500px" />
     <span id="dimmer_value">0</span>
+    <pre id="messages"></pre>
 </body>
 </html>

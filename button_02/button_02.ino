@@ -1,24 +1,25 @@
 /* vim: set ft=c : */
 
 /**
- *  Connect leds on 8, 10, 12
- *  Connect switches on 2, 4, 6
+ *  Connect leds on 3, 6, 9, 11
+ *  Connect switches on 2, 4, 7, 8
  */
 
-int buttons[3] = {2, 4, 6};
-int leds[3] = {8, 10, 12};
-int states[3] = {LOW, LOW, LOW};
+const int totalLeds = 4;
+int leds[] = {11, 9, 6, 3};
+int buttons[] = {8, 7, 4, 2};
+int states[] = {LOW, LOW, LOW, LOW};
 boolean changed;
 
 void setup() {
     Serial.begin(9600);
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < totalLeds; i++) {
         pinMode(leds[i], OUTPUT);
     }
 }
 
 void loop() {
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < totalLeds; i++) {
         changed = false;
         while(digitalRead(buttons[i]) == HIGH) {
             if (!changed) {

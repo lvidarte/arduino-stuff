@@ -3,7 +3,7 @@
 int pinLed = 11;
 int pinSensor = A0;
 int sensor = 0;
-int darkness = 0;
+int brightness = 0;
 
 void setup() {
     Serial.begin(9600);
@@ -15,10 +15,10 @@ void loop() {
     Serial.print("sensor: ");
     Serial.println(sensor);
 
-    darkness = map(sensor, 1023, 0, 0, 255);
-    Serial.print("darkness: ");
-    Serial.println(darkness);
+    brightness = map(sensor, 1023, 0, 0, 255);
+    Serial.print("brightness: ");
+    Serial.println(brightness);
 
-    analogWrite(pinLed, darkness);  
+    analogWrite(pinLed, brightness);  
     delay(100);
 }

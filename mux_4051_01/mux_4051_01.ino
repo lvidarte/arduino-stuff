@@ -36,7 +36,6 @@ void loop() {
     int leds[][2] = {
         {0, 7}, {1, 6}, {2, 5}, {3, 4}
     };
-
     for (int i = 0; i <= 3; i++) {
         turn_on_leds(leds[i], 2, 5000);
     }
@@ -48,7 +47,6 @@ void loop() {
     int leds2[][3] = {
         {0, 2, 4}, {1, 3, 5}, {2, 4, 6}, {3, 5, 7}
     };
-
     for (int i = 0; i < 4; i++) {
         turn_on_leds(leds2[i], 3, 5000);
     }

@@ -1,12 +1,12 @@
 /* vim: set ft=c : */
 
-#define PINES 3
+#define PINS 3
 #define LEDS 6
 #define OFF -1
 
-int pines[PINES] = {2, 3, 4};
+int pins[PINS] = {2, 3, 4};
 
-int leds[LEDS][PINES] = {
+int leds[LEDS][PINS] = {
     {HIGH, LOW, OFF},
     {LOW, HIGH, OFF},
     {OFF, HIGH, LOW},
@@ -22,13 +22,13 @@ void setup() {
 }
 
 void turnOnLed(int led) {
-    for (int i = 0; i < PINES; i++) {
+    for (int i = 0; i < PINS; i++) {
         if (leds[led][i] == OFF) {
-            pinMode(pines[i], INPUT);
+            pinMode(pins[i], INPUT);
         }
         else {
-            pinMode(pines[i], OUTPUT);
-            digitalWrite(pines[i], leds[led][i]);
+            pinMode(pins[i], OUTPUT);
+            digitalWrite(pins[i], leds[led][i]);
         }
     }
 }
@@ -38,7 +38,7 @@ void knightRider() {
         turnOnLed(i);
         delay(ms);
     }
-    for (int i = LEDS-2; i > 0; i--) {
+    for (int i = LEDS - 2; i > 0; i--) {
         turnOnLed(i);
         delay(ms);
     }

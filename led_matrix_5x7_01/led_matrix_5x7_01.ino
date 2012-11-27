@@ -3,8 +3,6 @@
 /**
  * @see 
  *
- * Connect mux 4051 with pines s0, s1 and s2 on 2, 3 and 4 resp.
- * Connect z to pin 7
  */
 
 #define SPACE { \

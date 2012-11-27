@@ -7,13 +7,13 @@
  * Connect z to pin 7
  */
 
-const int s0 = 2;
-const int s1 = 3;
-const int s2 = 4;
-const int z = 7; // power
+const int s0 = 10;
+const int s1 = 11;
+const int s2 = 12;
+const int z = 13; // power
 
 void setup() {
-    pinMods(s0, OUTPUT);
+    pinMode(s0, OUTPUT);
     pinMode(s1, OUTPUT);
     pinMode(s2, OUTPUT);
     pinMode(z, OUTPUT);

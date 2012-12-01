@@ -1,13 +1,15 @@
 /* vim: set ft=c : */
 
 /**
- * @see 
  *
  */
 
+const int cols[5] = {9, 10, 11, 12, 13};
+const int rows[7] = {2, 3, 4, 5, 6, 7, 8};
+
 #define LEN 91
 
-char charset[LEN][5] = {
+const char charset [LEN][5] = {
     {0x00, 0x00, 0x00, 0x00, 0x00},
     {0x21, 0x08, 0x42, 0x00, 0x80},
     {0x52, 0x80, 0x00, 0x00, 0x00},
@@ -84,7 +86,7 @@ char charset[LEN][5] = {
     {0x20, 0x08, 0x42, 0x10, 0x80},
     {0x20, 0x08, 0x42, 0x11, 0x00},
     {0x84, 0x25, 0x4c, 0x52, 0x40},
-    {0x21, 0x08, 0x42, 0x10, 0x80},
+    {0xe1, 0x08, 0x42, 0x10, 0x60},
     {0x00, 0x35, 0x5a, 0xd6, 0xa0},
     {0x00, 0x3d, 0x18, 0xc6, 0x20},
     {0x00, 0x1d, 0x18, 0xc5, 0xc0},
@@ -101,10 +103,7 @@ char charset[LEN][5] = {
     {0x00, 0x3e, 0x17, 0x43, 0xe0},
 };
 
-int cols[5] = {9, 10, 11, 12, 13};
-int rows[7] = {2, 3, 4, 5, 6, 7, 8};
-
-void refresh(char *c) {
+void draw(char *c) {
     int pos = 0;
     for (int row = 0; row < 7; row++) {
         for (int col = 0; col < 5; col++) {
@@ -114,25 +113,61 @@ void refresh(char *c) {
         delayMicroseconds(500);
         digitalWrite(rows[row], LOW);
     }
-
-    printf("\n");
 }
 
-void copy_to_buffer(char *c, char *buffer) {
-    int i, j;
+void show(const char *c, int times) {
+    char buffer[40];
     int pos = 0;
-    for (j = 0; j < 5; j++) {
-        for (i = 0; i < 8; i++) {
+    for (int j = 0; j < 5; j++) {
+        for (int i = 0; i < 8; i++) {
             buffer[pos++] = ((c[j] << i) & 0x80 ? '1' : '0');
         }
     }
+    for (int i = 0; i < times; i++) {
+        draw(buffer);
+    }
 }
 
-void draw(char *c, int times) {
-    char buffer[40];
-    copy_to_buffer(c, buffer);
-    for (int i = 0; i < times; i++) {
-        refresh(buffer);
+void marquee(const char *c1, const char *c2, int times) {
+
+    char buffer[35];
+    int pos_0 = 5;
+    int offset1 = 0;
+    int cpos;
+    int cindex;
+    int shift;
+    char value;
+
+    for (int frame = 0; frame < 6; frame++) {
+        int pos = 0;
+
+        for (int i = 0; i < 7; i++) {
+            for (int j = 0; j < 5; j++) {
+                if (j < pos_0) {
+                    cpos = pos + offset1;
+                    cindex = cpos / 8;
+                    shift = cpos % 8;
+                    value = ((c1[cindex] << shift) & 0x80 ? '1' : '0');
+                }
+                if (j == pos_0) {
+                    value = '0';
+                }
+                if (j > pos_0) {
+                    cpos = pos - pos_0 - 1;
+                    cindex = cpos / 8;
+                    shift = cpos % 8;
+                    value = ((c2[cindex] << shift) & 0x80 ? '1' : '0');
+                }
+
+                buffer[pos++] = value;
+            }
+        }
+        pos_0--;
+        offset1++;
+
+        for (int j = 0; j < times; j++) {
+            draw(buffer);
+        }
     }
 }
 
@@ -140,14 +175,23 @@ void setup() {
     for (int i = 2; i <= 13; i++) {
         pinMode(i, OUTPUT);
     }
-    Serial.begin(9600);
 }
 
 void loop() {
-
-    for (int k = 0; k < LEN; k++) {
-        draw(charset[k], 200);
+    char msg[] = "Hello world.";
+    int len_msg = sizeof(msg) - 1;
+    // char by char
+    for (int k = 0; k < len_msg; k++) {
+        int index = (int) msg[k] - 32;
+        show(charset[index], 200);
+        show(charset[0], 50); // space
     }
-
+    delay(1000);
+    // marquee
+    for (int k = 0; k < len_msg; k++) {
+        int index1 = (int) msg[k] - 32;
+        int index2 = (int) msg[(k < len_msg - 1) ? k + 1 : 0] - 32;
+        marquee(charset[index1], charset[index2], 50);
+    }
 }
 

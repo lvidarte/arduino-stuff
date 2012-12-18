@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Arduino messages</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var ws = new WebSocket("ws://10.0.5.49:8888/publisher");
+            ws.onmessage = function(event) {
+                var data = event.data.split('\n');
+                var id = data[0];
+                var msg = data[1];
+                if (id[0] == 'd') { // delete
+                    if (id.length > 1) {
+                        id = id.replace('d', '_');
+                        $('li#' + id).remove();
+                    }
+                    $('#arduino').html(msg);
+                } else { // add
+                    id = id.replace('a', '_');
+                    $('#queue').append('<li id="' + id + '">' + msg + '</li>');
+                }
+            }
+            $('#sender').submit(function() {
+                var message = $('#message').val();
+                ws.send(message);
+                $('#message').val('');
+                return false;
+            });
+        });
+    </script>
+</head>
+<body>
+    <form id="sender">
+        <input type="text" id="message">
+        <input type="submit" value="Send">
+    </form>
+    <h1>Mensaje actual: <span id="arduino"></span></h1>
+    <h2>En cola:</h2>
+    <ol id="queue"></ol>
+</body>
+</html>

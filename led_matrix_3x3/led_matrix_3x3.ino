@@ -49,6 +49,7 @@ void show(byte *c, int times) {
 }
 
 void loop() {
+    /*
     for (int i = 0; i < 3; i++) {
         scan_matrix();
     }
@@ -60,5 +61,10 @@ void loop() {
         show(a, 500);
         show(b, 500);
     }
+    */
+
+    digitalWrite(rows[0], HIGH);
+    digitalWrite(cols[0], HIGH);
+    digitalWrite(cols[2], HIGH);
 }
 

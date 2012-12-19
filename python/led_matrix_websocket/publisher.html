@@ -29,15 +29,20 @@
             }
             $('#sender').submit(function() {
                 var message = $('#message').val();
-                ws.send(message);
+                if (message.length) {
+                    ws.send(message);
+                }
                 $('#message').val('');
                 return false;
+            });
+            $('#message').keyup(function() {
+                $('#chars-left').html(64 - $(this).val().length);
             });
         });
     </script>
     <style type="text/css">
         body { color: #555; font-size: 20px; }
-        h1, h2 { margin-top: 0; }
+        h1, h2 { margin-top: 0 }
         h1 { font-size: 72px; margin-left: 50px; }
         li { color: green }
         #arduino { color: green }
@@ -48,9 +53,8 @@
 </head>
 <body>
     <form id="sender" class="box">
-        Your message <input type="text" id="message">
-        <input type="submit" value="Send">
-        <p class="help">64 chars max length and only <a href="http://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters">printable ascii chars</a> (in range from 32 to 126)</p>
+        Your message: <input type="text" id="message" maxlength="64" style="width:400px"> 
+        <span class="help">(<span id="chars-left">64</span> chars left. Only <a href="http://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters">printable ascii chars</a>.)</span>
     </form>
     <div class="box">
         <h2>Arduino: <span id="ip"></span></h2>

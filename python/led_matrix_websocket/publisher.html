@@ -9,17 +9,22 @@
             var ws = new WebSocket("ws://10.0.5.49:8888/publisher");
             ws.onmessage = function(event) {
                 var data = event.data.split('\n');
-                var id = data[0];
-                var msg = data[1];
-                if (id[0] == 'd') { // delete
-                    if (id.length > 1) {
-                        id = id.replace('d', '_');
+                var action = data[0]
+                var id = data[1];
+                var ip = data[2];
+                var msg = data[3];
+                if (action == 'SENT') {
+                    if (id) {
                         $('li#' + id).remove();
                     }
+                    $('#ip').html(ip);
                     $('#arduino').html(msg);
-                } else { // add
-                    id = id.replace('a', '_');
-                    $('#queue').append('<li id="' + id + '">' + msg + '</li>');
+                } else { // ADDED
+                    var li = $('<li/>', {'id': id});
+                    var span = $('<span/>', {'class': 'ip', 'text': ip})
+                    li.append(span);
+                    li.append(' ' + msg);
+                    $('#queue').append(li);
                 }
             }
             $('#sender').submit(function() {
@@ -30,14 +35,30 @@
             });
         });
     </script>
+    <style type="text/css">
+        body { color: #555; font-size: 20px; }
+        h1, h2 { margin-top: 0; }
+        h1 { font-size: 72px; margin-left: 50px; }
+        li { color: green }
+        #arduino { color: green }
+        .help { font-size: 14px }
+        .box { border: solid 1px #cacaca; padding: 20px; margin-top: 10px; }
+        .ip { color: gray }
+    </style>
 </head>
 <body>
-    <form id="sender">
-        <input type="text" id="message">
+    <form id="sender" class="box">
+        Your message <input type="text" id="message">
         <input type="submit" value="Send">
+        <p class="help">64 chars max length and only <a href="http://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters">printable ascii chars</a> (in range from 32 to 126)</p>
     </form>
-    <h1>Mensaje actual: <span id="arduino"></span></h1>
-    <h2>En cola:</h2>
-    <ol id="queue"></ol>
+    <div class="box">
+        <h2>Arduino: <span id="ip"></span></h2>
+        <h1 id="arduino"></h1>
+    </div>
+    <div class="box">
+        <h2>Queue:</h2>
+        <ol id="queue"></ol>
+    </div>
 </body>
 </html>

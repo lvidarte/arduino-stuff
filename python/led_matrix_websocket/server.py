@@ -7,24 +7,28 @@ import threading
 import time
 
 
+MSG_SENT = 'SENT\n%s\n%s\n%s'
+MSG_ADDED = 'ADDED\n%s\n%s\n%s'
+
+
 def publisher():
     print "Starting publisher"
     while True:
         with Glob.lock:
             if Glob.queue:
-                Glob.message = Glob.queue.pop(0)
-                print "Sending to Arduino:", Glob.message[1]
+                Glob.last_sent_message = Glob.queue.pop(0)
+                print "Sending to Arduino:", Glob.last_sent_message[-1]
             else:
-                Glob.message = ('', '')
+                Glob.last_sent_message = ('', '', '')
             for client in Glob.clients:
-                client.write_message('d%s\n%s' % Glob.message)
+                client.write_message(MSG_SENT % Glob.last_sent_message)
         time.sleep(20)
 
 
 class Glob:
     queue = []
     clients = []
-    message = ''
+    last_sent_message = None
     lock = threading.Lock()
     count = 0
     publisher = threading.Thread(target=publisher)
@@ -43,23 +47,32 @@ class PublisherWebSocketHandler(websocket.WebSocketHandler):
         with Glob.lock:
             if Glob.queue:
                 for message in Glob.queue:
-                    self.write_message('a%s\n%s' % message)
-            self.write_message('d%s\n%s' % Glob.message)
+                    self.write_message(MSG_ADDED % message)
+            self.write_message(MSG_SENT % Glob.last_sent_message)
         print "Websocket opened"
 
     def on_message(self, message):
         with Glob.lock:
-            msg = (Glob.count, message)
+            message = self.parse_message(message)
+            msg = (Glob.count, self.request.remote_ip, message)
             Glob.queue.append(msg)
             Glob.count += 1
             for client in Glob.clients:
-                client.write_message('a%s\n%s' % msg)
+                client.write_message(MSG_ADDED % msg)
             print "Received from client:", message
 
     def on_close(self):
         if Glob.clients:
             Glob.clients.remove(self)
         print "Websocket closed"
+
+    def parse_message(self, message):
+        _ = message.strip()
+        # only printable ascii chars (in range from 32 to 126)
+        _ = "".join([c for c in _ if ord(c) >= 32 and ord(c) <= 126])
+        if len(_) > 64:
+            _ = _[:64]
+        return _
 
 
 if __name__ == '__main__':

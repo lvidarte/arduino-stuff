@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Arduino messages</title>
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700' rel='stylesheet' type='text/css'>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
@@ -42,13 +43,18 @@
         });
     </script>
     <style type="text/css">
-        body { color: #555; font-size: 20px; }
+        body { font-family: 'Ubuntu Mono', sans-serif; color: #555; font-size: 20px; }
         h1, h2 { margin-top: 0 }
         h1 { font-size: 72px; margin-left: 50px; }
         li { color: green }
+        input { color: #555; border: solid 2px #cacaca; font-size: 24px;
+                padding: 10px; border-radius: 5px;
+                font-family: 'Ubuntu Mono'; font-weight: bold;
+            }
         #arduino { color: green }
-        .help { font-size: 14px }
-        .box { border: solid 1px #cacaca; padding: 20px; margin-top: 10px; }
+        .help { font-size: 16px }
+        .box { border: solid 3px #cacaca; background: #fafafa;
+               padding: 20px; margin-top: 10px; border-radius: 5px; }
         .ip { color: gray }
     </style>
 </head>
@@ -58,11 +64,11 @@
         <span class="help">(<span id="chars-left">64</span> chars left. Only <a href="http://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters">printable ascii chars</a>.)</span>
     </form>
     <div class="box">
-        <h2>In Arduino: <span id="ip"></span></h2>
+        <h2>Message in Arduino: <span id="ip"></span></h2>
         <h1 id="arduino"></h1>
     </div>
     <div class="box">
-        <h2>In Queue:</h2>
+        <h2>Messages in queue:</h2>
         <ol id="queue"></ol>
     </div>
 </body>

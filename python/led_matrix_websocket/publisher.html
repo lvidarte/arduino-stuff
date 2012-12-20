@@ -17,7 +17,8 @@
                     if (id) {
                         $('li#' + id).remove();
                     }
-                    $('#ip').html(ip);
+                    var msg_ip = (ip) ? '(from ' + ip + ')': '';
+                    $('#ip').html(msg_ip);
                     $('#arduino').html(msg);
                 } else { // ADDED
                     var li = $('<li/>', {'id': id});
@@ -57,11 +58,11 @@
         <span class="help">(<span id="chars-left">64</span> chars left. Only <a href="http://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters">printable ascii chars</a>.)</span>
     </form>
     <div class="box">
-        <h2>Arduino: <span id="ip"></span></h2>
+        <h2>In Arduino: <span id="ip"></span></h2>
         <h1 id="arduino"></h1>
     </div>
     <div class="box">
-        <h2>Queue:</h2>
+        <h2>In Queue:</h2>
         <ol id="queue"></ol>
     </div>
 </body>

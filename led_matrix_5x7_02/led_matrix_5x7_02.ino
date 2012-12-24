@@ -7,8 +7,7 @@
 const int cols[5] = {9, 10, 11, 12, 13};
 const int rows[7] = {2, 3, 4, 5, 6, 7, 8};
 
-
-#define LEN 91
+#define LEN 95
 
 const char charset [LEN][5] = {
     {0x00, 0x00, 0x00, 0x00, 0x00},
@@ -102,8 +101,11 @@ const char charset [LEN][5] = {
     {0x00, 0x22, 0xa2, 0x2a, 0x20},
     {0x00, 0x23, 0x17, 0x87, 0xc0},
     {0x00, 0x3e, 0x17, 0x43, 0xe0},
+    {0x31, 0x08, 0x82, 0x10, 0xc0},
+    {0x21, 0x08, 0x47, 0x10, 0x80},
+    {0x61, 0x08, 0x22, 0x11, 0x80},
+    {0x00, 0x31, 0x51, 0x80, 0x00},
 };
-
 
 void draw(char *c) {
     int pos = 0;
@@ -177,25 +179,45 @@ void setup() {
     for (int i = 2; i <= 13; i++) {
         pinMode(i, OUTPUT);
     }
+    Serial.begin(9600);
 }
 
 void loop() {
-    char msg[] = "Hello world.";
-    int len_msg = sizeof(msg) - 1;
+    char message[66];
+    char last_char = ' ';
+    int index = 0;
 
-    // char by char
-    for (int k = 0; k < len_msg; k++) {
-        int index = (int) msg[k] - 32;
-        show(charset[index], 200);
-        show(charset[0], 50); // space
+    Serial.print('1');
+    while (index < 65 && last_char != '\0') {
+        if (Serial.available()) {
+            last_char = Serial.read();
+            message[index] = last_char;
+            index++;
+        }
     }
-    delay(1000);
+    Serial.print('0');
 
-    // marquee
-    for (int k = 0; k < len_msg; k++) {
-        int index1 = (int) msg[k] - 32;
-        int index2 = (int) msg[(k < len_msg - 1) ? k + 1 : 0] - 32;
-        marquee(charset[index1], charset[index2], 50);
+    int len_message = strlen(message);
+
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < len_message; j++) {
+
+            // marquee
+            if (i == 1 && j == len_message -1) {
+                break;
+            }
+            int k1 = (int) message[j] - 32;
+            int k2 = (int) message[(j < len_message - 1) ? j + 1 : 0] - 32;
+            marquee(charset[k1], charset[k2], 50);
+
+            /*
+            // char by char
+            int k = (int) message[j] - 32;
+            show(charset[k], 200);
+            show(charset[0], 50); // space
+            */
+        }
     }
+
 }
 

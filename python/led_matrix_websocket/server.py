@@ -19,7 +19,7 @@ MSG_ADDED = 'ADDED\n%s\n%s\n%s'
 def publisher():
     logging.info('Starting publisher')
     while True:
-        if Glob.arduino_state:
+        if Glob.arduino_ready:
             with Glob.lock:
                 if Glob.queue:
                     Glob.last_sent_message = Glob.queue.pop(0)
@@ -39,10 +39,10 @@ def check_state():
     while True:
         try:
             data = conn.read()
-            Glob.arduino_state = True if data == '1' else False
-            logging.info("Arduino state %s", Glob.arduino_state)
-        except:
-            pass
+            Glob.arduino_ready = True if data == '1' else False
+            logging.info("Arduino state %s", Glob.arduino_ready)
+        except Exception as e:
+            logging.exception(e)
 
 
 class Glob:
@@ -52,7 +52,7 @@ class Glob:
     lock = threading.Lock()
     count = 0
     publisher = threading.Thread(target=publisher)
-    arduino_state = False
+    arduino_ready = False
     arduino_check_state = threading.Thread(target=check_state)
 
 

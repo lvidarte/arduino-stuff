@@ -10,7 +10,8 @@ void setup() {
 
 void loop() {
     if (Serial.available() > 0) {
-        int incomingByte = Serial.read();
+        char incomingByte = Serial.read();
+        Serial.println(incomingByte);
         if (incomingByte == '1') {
             digitalWrite(LED, HIGH);
         }

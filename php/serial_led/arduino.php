@@ -7,11 +7,11 @@ if (isset($_GET['action'])) {
     $times = isset($_GET['times']) ? $_GET['times'] : 5;
 
     $serial = new phpSerial();
-    $serial->deviceSet('/dev/ttyUSB1');
+    $serial->deviceSet('/dev/ttyUSB0');
     $serial->confBaudRate(9600);
     $serial->deviceOpen();
 
-    $actions = array('on' => "1\r", 'off' => "0\r");
+    $actions = array('on' => 1, 'off' => 0);
 
     if (in_array($action, array_keys($actions))) {
         $serial->sendMessage($actions[$action]);
@@ -40,7 +40,7 @@ if (isset($_GET['action'])) {
     </ul>
     <h2>Blink</h2>
     <ul>
-        <li><a href="arduino.php?action=blink">Slow</a></li>
+        <li><a href="arduino.php?action=blink&msec=500000&times=5">Slow</a></li>
         <li><a href="arduino.php?action=blink&msec=100000&times=10">Fast</a></li>
     </ul>
 </body>

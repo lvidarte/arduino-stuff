@@ -1,15 +1,31 @@
 <?php
 $value = isset($_GET['value']) ? $_GET['value'] : 0;
 
-if (isset($_GET['value'])) {
+if (isset($_GET['action'])) {
     require_once('php_serial.class.php');
+
+    $action = $_GET['action'];
+    $msec = isset($_GET['msec']) ? $_GET['msec'] : 500000;
 
     $serial = new phpSerial();
     $serial->deviceSet('/dev/ttyUSB0');
     $serial->confBaudRate(9600);
     $serial->deviceOpen();
 
-    $serial->sendMessage($_GET['value']);
+    if ($action == 'set') {
+        $serial->sendMessage($value);
+    }
+    if ($action == 'dimmer') {
+        for ($i = 0; $i <= 9; $i++) {
+            $serial->sendMessage($i);
+            usleep($msec);
+        }
+        for ($i = 9; $i >= 0; $i--) {
+            $serial->sendMessage($i);
+            usleep($msec);
+        }
+    }
+
     $serial->deviceClose();
 }
 ?>
@@ -22,10 +38,19 @@ if (isset($_GET['value'])) {
 <body>
     <h1>Arduino LED control</h1>
     Set brightness
-    <select name="brigthness" onchange="javascript:location.href='arduino.php?value='+this.value">
+    <select
+        onchange="javascript:location.href='arduino.php?action=set&value='+this.value">
         <?php for ($i = 0; $i <= 9; $i++) { ?>
-        <option value="<?= $i ?>" <?= ($i == $value) ? 'selected="selected"' : '' ?>><?= $i ?></option>
+            <option value="<?= $i ?>"
+            <? if ($i == $value) echo 'selected="selected"'; ?>>
+                <?= $i ?>
+            </option>
         <? } ?>
     </select>
+    <h2>Dimmer</h2>
+    <ul>
+        <li><a href="arduino.php?action=dimmer&msec=500000">Slow</a></li>
+        <li><a href="arduino.php?action=dimmer&msec=100000">Fast</a></li>
+    </ul>
 </body>
 </html>

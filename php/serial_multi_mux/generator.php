@@ -2,16 +2,14 @@
 
 require_once('php_serial.class.php');
 
-/*
 $serial = new phpSerial();
-if ($serial->deviceSet('/dev/ttyUSB0')) {
+if ($serial->deviceSet('/dev/ttyACM0')) {
         $serial->confBaudRate(9600);
         $serial->deviceOpen();
 } else {
     print "Error opening serial device.\n";
     exit(1);
 }
-*/
 
 declare(ticks = 1);
 
@@ -37,12 +35,10 @@ $units = array(
 );
 
 
-
-
 function signal_handler($signo)
 {
     print "Saliendo ..\n";
-    #$serial->deviceClose();
+    //$serial->deviceClose();
     exit(0);
 }
 
@@ -77,7 +73,7 @@ while (true) {
             $unit['actual'], $unit['range']
         );
         printf("Sending %d ..\n", $unit['actual']);
-        #$serial->sendMessage($unit['actual']);
+        $serial->sendMessage(chr($unit['actual']));
         usleep(MSEC);
     }
 }

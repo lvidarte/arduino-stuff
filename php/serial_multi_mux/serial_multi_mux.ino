@@ -1,48 +1,59 @@
 /* vim: set ft=c : */
 
-#define UNITS 2
+#define TUNITS 2
 
-int units [UNITS][4]= {
-    {1, 2, 3, 10},
-    {5, 6, 7, 11}
+#define S0  0
+#define S1  1
+#define S2  2
+#define PWR 3
+#define MIN 4
+#define MAX 5
+#define VAL 6
+
+int units[TUNITS][7]= {
+    {4, 5, 6, 7, 50, 58, 0},
+    {10, 11, 12, 13, 60, 68, 0}
 };
 
 void setup() {
     int i, j;
-    for (i = 0; i < UNITS; i++) {
+    for (i = 0; i < TUNITS; i++) {
         for (j = 0; j < 4; j++) {
             pinMode(units[i][j], OUTPUT);
         }
     }
-    //Serial.begin(9600);
+    Serial.begin(9600);
 }
 
 void turn_on_led(int unit, int number) {
-    digitalWrite(units[unit][3], LOW);
-    digitalWrite(units[unit][0], number & 0x01);
-    digitalWrite(units[unit][1], number & 0x02); // no need to shift ;)
-    digitalWrite(units[unit][2], number & 0x04); // idem
-    digitalWrite(units[unit][3], HIGH);
+    //digitalWrite(units[unit][PWR], LOW);
+    digitalWrite(units[unit][S0], number & 0x01);
+    digitalWrite(units[unit][S1], number & 0x02); // no need to shift ;)
+    digitalWrite(units[unit][S2], number & 0x04); // idem
+    digitalWrite(units[unit][PWR], HIGH);
 }
 
-void turn_on_leds_on_unit(int unit, int leds) {
-    int i;
-    for (i = 0; i < leds; i++) {
+void turn_on_leds_on_unit(int unit) {
+    for (int i = 0; i < units[unit][VAL]; i++) {
         turn_on_led(unit, i);
     }
 }
 
-void loop() {
-    int i, j;
-    /*
-    if (Serial.available() > 0) {
-        char incomingByte = Serial.read();
-        Serial.println(incomingByte);
-    }
-    */
-    for (i = 0; i < UNITS; i++) {
-        for (j = 0; j <= 8; j++) {
-            turn_on_led(i, j);
+void set_actual(int value) {
+    for (int i = 0; i < TUNITS; i++) {
+        if (value >= units[i][MIN] && value <= units[i][MAX]) {
+            units[i][VAL] = value - units[i][MIN];
+            return;
         }
+    }
+}
+
+void loop() {
+    if (Serial.available() > 0) {
+        int value = Serial.read();
+        set_actual(value);
+    }
+    for (int i = 0; i < TUNITS; i++) {
+        turn_on_leds_on_unit(i);
     }
 }

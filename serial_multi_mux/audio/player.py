@@ -9,14 +9,14 @@ if len(sys.argv) < 2:
     print("Plays a wave file.\n\nUsage: %s filename.wav" % sys.argv[0])
     sys.exit(-1)
 
-wf = wave.open(sys.argv[1], 'rb')
-#(nchannels, sampwidth, framerate, nframes, comptype, compname) = wf.getparams()
+w = wave.open(sys.argv[1], 'rb')
+(nchannels, sampwidth, framerate, nframes, comptype, compname) = w.getparams()
 
 p = pyaudio.PyAudio()
 
-stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                channels=wf.getnchannels(),
-                rate=wf.getframerate(),
+stream = p.open(format=p.get_format_from_width(sampwidth),
+                channels=nchannels,
+                rate=framerate,
                 output=True)
 
 def data_analyzer(data):
@@ -28,12 +28,12 @@ def data_analyzer(data):
             print values[i]
 
 while True:
-    data = wf.readframes(CHUNK)
+    data = w.readframes(CHUNK)
     if not data:
         break
     data_analyzer(data)
-    stream.write(data)
+    #stream.write(data)
 
-stream.stop_stream()
+#stream.stop_stream()
 stream.close()
 p.terminate()

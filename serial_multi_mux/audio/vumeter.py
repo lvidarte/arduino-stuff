@@ -84,7 +84,19 @@ class Application(tk.Frame):
             time.sleep(SLEEP)
 
 if __name__ == '__main__':
-    app = Application()
-    app.master.title("Vumeter")
+    prog = u'Vumeter'
+
+    from optparse import OptionParser
+    parser = OptionParser(description=prog)
+    parser.add_option('-v', '--vumeters', type=int, dest='width',
+                      default=WIDTH, help="Vumeters units")
+    parser.add_option('-l', '--leds', type=int, dest='height',
+                      default=HEIGHT, help="LEDs by vumeter")
+    parser.add_option('-s', '--size', type=int, default=SIZE,
+                      help="LEDs size")
+    args, _ = parser.parse_args()
+
+    app = Application(args.width, args.height, args.size)
+    app.master.title(prog)
     app.mainloop()
 

@@ -107,7 +107,15 @@ const char charset [LEN][5] = {
     {0x00, 0x31, 0x51, 0x80, 0x00},
 };
 
-void draw(char *c) {
+
+void setup() {
+    for (int i = 2; i <= 13; i++) {
+        pinMode(i, OUTPUT);
+    }
+    Serial.begin(9600);
+}
+
+void draw_char(char *c) {
     int pos = 0;
     for (int row = 0; row < 7; row++) {
         for (int col = 0; col < 5; col++) {
@@ -119,7 +127,7 @@ void draw(char *c) {
     }
 }
 
-void show(const char *c, int times) {
+void fixed_char(const char *c, int times) {
     char buffer[40];
     int pos = 0;
     for (int j = 0; j < 5; j++) {
@@ -128,11 +136,11 @@ void show(const char *c, int times) {
         }
     }
     for (int i = 0; i < times; i++) {
-        draw(buffer);
+        draw_char(buffer);
     }
 }
 
-void marquee(const char *c1, const char *c2, int times) {
+void marquee_chars(const char *c1, const char *c2, int times) {
 
     char buffer[35];
     int pos_0 = 5;
@@ -162,7 +170,6 @@ void marquee(const char *c1, const char *c2, int times) {
                     shift = cpos % 8;
                     value = ((c2[cindex] << shift) & 0x80 ? '1' : '0');
                 }
-
                 buffer[pos++] = value;
             }
         }
@@ -170,29 +177,27 @@ void marquee(const char *c1, const char *c2, int times) {
         offset1++;
 
         for (int j = 0; j < times; j++) {
-            draw(buffer);
+            draw_char(buffer);
         }
     }
-}
-
-void setup() {
-    for (int i = 2; i <= 13; i++) {
-        pinMode(i, OUTPUT);
-    }
-    Serial.begin(9600);
 }
 
 void loop() {
     char message[66];
     char last_char = ' ';
     int index = 0;
+    int is_marquee = 0;
 
     Serial.print('1');
     while (index < 65 && last_char != '\0') {
         if (Serial.available()) {
             last_char = Serial.read();
-            message[index] = last_char;
-            index++;
+            if (index == 0 && last_char == '~') {
+                is_marquee = 1;
+            } else {
+                message[index] = last_char;
+                index++;
+            }
         }
     }
     Serial.print('0');
@@ -202,20 +207,21 @@ void loop() {
     for (int i = 0; i < 2; i++) {
         for (int j = 0; j < len_message; j++) {
 
-            // marquee
-            if (i == 1 && j == len_message -1) {
-                break;
+            if (is_marquee) {
+                // marquee
+                if (i == 1 && j == len_message -1) {
+                    break;
+                }
+                int k1 = (int) message[j] - 32;
+                int k2 = (int) message[(j < len_message - 1) ? j + 1 : 0] - 32;
+                marquee_chars(charset[k1], charset[k2], 50);
+            } else {
+                // static, fixed
+                int k = (int) message[j] - 32;
+                fixed_char(charset[k], 200);
+                fixed_char(charset[0], 50); // space
             }
-            int k1 = (int) message[j] - 32;
-            int k2 = (int) message[(j < len_message - 1) ? j + 1 : 0] - 32;
-            marquee(charset[k1], charset[k2], 50);
 
-            /*
-            // char by char
-            int k = (int) message[j] - 32;
-            show(charset[k], 200);
-            show(charset[0], 50); // space
-            */
         }
     }
 

@@ -13,18 +13,68 @@
 
 int RECV_PIN = 11; //define input pin on Arduino
 
-byte digits[] = {0xfc, 0x60, 0xda, 0xf2, 0x66, 0xb6, 0xbe, 0xe0, 0xfe, 0xf6};
+byte digits[16] = {0xfc, 0x60, 0xda, 0xf2,
+                   0x66, 0xb6, 0xbe, 0xe0,
+                   0xfe, 0xf6, 0xee, 0x3e,
+                   0x9c, 0x7a, 0x9e, 0x8e};
+
+byte actual = 0;
 
 IRrecv irrecv(RECV_PIN);
 decode_results results;
 
 
 void setup() {
+    Serial.begin(9600);
     for (byte i = 2; i <= 9; i++) {
         pinMode(i, OUTPUT);
     }
-    Serial.begin(9600);
+    display(digits[actual]); // Set digit to 0
     irrecv.enableIRIn(); // Start the receiver
+}
+
+void loop() {
+    if (irrecv.decode(&results)) {
+        Serial.println(results.value, HEX);
+        if (results.value == 0xff6897) {
+            actual = 0;
+        }
+        if (results.value == 0xff30cf) {
+            actual = 1;
+        }
+        if (results.value == 0xff18e7) {
+            actual = 2;
+        }
+        if (results.value == 0xff7a85) {
+            actual = 3;
+        }
+        if (results.value == 0xff10ef) {
+            actual = 4;
+        }
+        if (results.value == 0xff38c7) {
+            actual = 5;
+        }
+        if (results.value == 0xff5aa5) {
+            actual = 6;
+        }
+        if (results.value == 0xff42bd) {
+            actual = 7;
+        }
+        if (results.value == 0xff4ab5) {
+            actual = 8;
+        }
+        if (results.value == 0xff52ad) {
+            actual = 9;
+        }
+        if (results.value == 0xff906f && actual < 15) { // Up
+            actual++;
+        }
+        if (results.value == 0xffa857 && actual > 0) { // Down
+            actual--;
+        }
+        display(digits[actual]);
+        irrecv.resume(); // Receive the next value
+    }
 }
 
 void display(byte value) {
@@ -38,39 +88,3 @@ void display(byte value) {
     digitalWrite(DP, value & 0x1);
 }
 
-void loop() {
-    if (irrecv.decode(&results)) {
-        Serial.println(results.value, HEX);
-        if (results.value == 0xff6897) {
-            display(digits[0]);
-        }
-        if (results.value == 0xff30cf) {
-            display(digits[1]);
-        }
-        if (results.value == 0xff18e7) {
-            display(digits[2]);
-        }
-        if (results.value == 0xff7a85) {
-            display(digits[3]);
-        }
-        if (results.value == 0xff10ef) {
-            display(digits[4]);
-        }
-        if (results.value == 0xff38c7) {
-            display(digits[5]);
-        }
-        if (results.value == 0xff5aa5) {
-            display(digits[6]);
-        }
-        if (results.value == 0xff42bd) {
-            display(digits[7]);
-        }
-        if (results.value == 0xff4ab5) {
-            display(digits[8]);
-        }
-        if (results.value == 0xff52ad) {
-            display(digits[9]);
-        }
-        irrecv.resume(); // Receive the next value
-    }
-}

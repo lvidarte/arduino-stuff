@@ -2,7 +2,7 @@
 
 #include <IRremote.h>
 
-int rele_pin = 13;
+int relay_pin = 13;
 int recv_pin = 11;
 int actual_state = LOW;
 
@@ -11,7 +11,7 @@ decode_results results;
 
 
 void setup() {
-    pinMode(rele_pin, OUTPUT);
+    pinMode(relay_pin, OUTPUT);
     Serial.begin(9600);
     irrecv.enableIRIn(); // Start the receiver
 }
@@ -21,7 +21,7 @@ void loop() {
         Serial.println(results.value, HEX);
         if (results.value == 0xffa25d) { // On/Off button
             actual_state = (actual_state == LOW) ? HIGH : LOW;
-            digitalWrite(rele_pin, actual_state);
+            digitalWrite(relay_pin, actual_state);
         }
         irrecv.resume(); // Receive the next value
     }

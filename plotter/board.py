@@ -54,10 +54,11 @@ class Board(object):
         self._add_point(point)
 
     def _add_point(self, point):
+        point_from = self.get_last_point()
         self.points.append(point)
         if self.canvas:
             self.draw_point(point)
-        print(self.get_log(point))
+        print(self.get_log(point, point_from))
 
     def draw_point(self, point):
         if self.points:
@@ -80,19 +81,25 @@ class Board(object):
         s1 = h1 * STEPS_PER_MM 
         return (s0, s1)
 
-    def get_relative_steps(self, point):
+    def get_relative_steps(self, point, point_from):
         s0, s1 = self.get_absolute_steps(point)
-        if len(self.points) > 1:
-            last_s0, last_s1 = self.get_absolute_steps(self.points[-2])
-            s0 -= last_s0
-            s1 -= last_s1
+        if point_from:
+            s0_from, s1_from = self.get_absolute_steps(point_from)
+            s0 -= s0_from
+            s1 -= s1_from
         else:
             s0, s1 = 0, 0
         return (s0, s1)
 
-    def get_log(self, point):
+    def get_last_point(self):
+        if len(self.points):
+            return self.points[-1]
+        else:
+            return None
+
+    def get_log(self, point, point_from=None):
         h0, h1 = self.get_hypot(point)
-        s0, s1 = self.get_relative_steps(point)
+        s0, s1 = self.get_relative_steps(point, point_from)
         args = (point, h0, h1, s0, s1)
         str = "Point %s :: Hypots (%.2f, %.2f) :: Relative steps (%d, %d)"
         return str % args
@@ -126,11 +133,12 @@ class App(tk.Frame):
 
     def add_point(self, event):
         point = Point(event.x, event.y)
+        point_from = self.board.get_last_point()
         self.board.add_point(point)
-        self.update_status(point)
+        self.update_status(point, point_from)
 
-    def update_status(self, point):
-        text = self.board.get_log(point)
+    def update_status(self, point, point_from=None):
+        text = self.board.get_log(point, point_from)
         self.status.config(text=text)
 
 

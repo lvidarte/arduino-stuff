@@ -154,4 +154,3 @@ if __name__ == '__main__':
     app = App(args.width, args.height)
     app.master.title(prog_name)
     app.mainloop()
-

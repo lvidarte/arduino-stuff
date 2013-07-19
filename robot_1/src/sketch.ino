@@ -1,60 +1,99 @@
 #include <AFMotor.h>
 
-const int LED_PIN = 13;
-const int speed = 80;
+#define trigPin A0
+#define echoPin A1
+#define SPEED 200
+
 
 AF_DCMotor motor_left(1, MOTOR12_2KHZ);
 AF_DCMotor motor_right(2, MOTOR12_2KHZ);
 
-int pwm;
 
 void setup()
 {
-    pwm = map(speed, 0, 100, 0, 255);
-    motor_left.setSpeed(pwm);
-    motor_right.setSpeed(pwm);
+    randomSeed(analogRead(0));
+    pinMode(trigPin, OUTPUT);
+    pinMode(echoPin, INPUT);
+    motor_left.setSpeed(SPEED);
+    motor_right.setSpeed(SPEED);
 }
 
 void loop()
 {
-    forward(1000);
-    stop(500);
-    right(1000);
-    stop(500);
-    backward(1000);
-    stop(500);
-    left(1000);
-    stop(500);
+    int rvalue;
+    int distance = get_distance();
+    if (distance > 40 || distance <= 0) {
+        forward();
+    } else {
+        turn();
+    }
 }
 
-void forward(int time)
+void forward()
 {
     motor_left.run(FORWARD);
     motor_right.run(FORWARD);
-    delay(time);
 }
 
-void backward(int time)
+void backward()
 {
     motor_left.run(BACKWARD);
     motor_right.run(BACKWARD);
-    delay(time);
 }
 
-void left(int time) {
+void left() {
     motor_left.run(FORWARD);
     motor_right.run(BACKWARD);
-    delay(time);
 }
 
-void right(int time) {
+void right() {
     motor_left.run(BACKWARD);
     motor_right.run(FORWARD);
-    delay(time);
 }
 
-void stop(int time) {
+void stop() {
     motor_left.run(RELEASE);
     motor_right.run(RELEASE);
-    delay(time);
+}
+
+void turn() {
+    stop();
+    delay(500);
+    if (random(0, 2)) {
+        backward();
+        delay(random(1, 5) * 250);
+        stop();
+        delay(500);
+    }
+    if (random(0, 2)) {
+        right();
+        delay(random(1, 5) * 250);
+    } else {
+        left();
+        delay(random(1, 5) * 250);
+    }
+    stop();
+    delay(500);
+}
+
+long _get_distance()
+{
+    long duration, distance;
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(2000);
+    digitalWrite(trigPin, LOW);
+    duration = pulseIn(echoPin, HIGH);
+    distance = (duration/2) * 0.03435;
+    return distance;
+}
+
+long get_distance()
+{
+    long total_distance = 0;
+    int amount = 20;
+    for (int i = 0; i < amount; i++) {
+        total_distance += _get_distance();
+        delay(25);
+    }
+    return total_distance / amount;
 }

@@ -47,8 +47,8 @@ class Board(object):
         self.canvas = None
 
     def add_point(self, point):
-        if self.points:
-            last_point = self.points[-1]
+        last_point = self.get_last_point()
+        if last_point:
             for p in point.get_points_from(last_point):
                 self._add_point(p)
         self._add_point(point)
@@ -94,8 +94,7 @@ class Board(object):
     def get_last_point(self):
         if len(self.points):
             return self.points[-1]
-        else:
-            return None
+        return None
 
     def get_log(self, point, point_from=None):
         h0, h1 = self.get_hypot(point)

@@ -3,6 +3,7 @@
 
 import Tkinter as tk
 import math
+import serial
 
 
 def drange(start, stop, step=1):
@@ -10,6 +11,19 @@ def drange(start, stop, step=1):
     while r < stop:
         yield r
         r += step
+
+
+class Serial(object):
+
+    def __init__(self, port=None):
+        if port is not None:
+            self.conn = serial.Serial(port, 9600)
+        else:
+            self.conn = None
+
+    def send(self, value):
+        if self.conn:
+            print value
 
 
 class Point(object):
@@ -37,12 +51,12 @@ class Point(object):
 
 class Board(object):
 
-    def __init__(self, width, height,
+    def __init__(self, width, height, serial,
                  steps_per_mm=51.2, resolution=1,
                  no_points_generation=False):
-
         self.width = width
         self.height = height
+        self.serial = serial
         self.steps_per_mm = steps_per_mm
         self.resolution = resolution
         self.no_points_generation = no_points_generation
@@ -62,6 +76,7 @@ class Board(object):
         if self.canvas:
             self.draw_point(point)
         self.points.append(point)
+        self.send(point, point_from)
         print(self.get_log(point, point_from))
 
     def draw_point(self, point):
@@ -99,6 +114,11 @@ class Board(object):
             return self.points[-1]
         return None
 
+    def send(self, point, point_from=None):
+        s0, s1 = self.get_relative_steps(point, point_from)
+        value = "s%d,%d\0" % (s0, s1)
+        self.serial.send(value)
+
     def get_log(self, point, point_from=None):
         h0, h1 = self.get_hypot(point)
         s0, s1 = self.get_relative_steps(point, point_from)
@@ -109,7 +129,7 @@ class Board(object):
 
 class App(tk.Frame):
 
-    def __init__(self, board, init_point):
+    def __init__(self, board, init_point=None):
         tk.Frame.__init__(self)
         self.grid()
         self.board = board
@@ -149,6 +169,7 @@ class App(tk.Frame):
 
 if __name__ == '__main__':
     from optparse import OptionParser
+
     prog_name = u'Plotter'
     parser = OptionParser(description=prog_name)
     parser.add_option('-w', '--width', type=int, default=640,
@@ -161,12 +182,20 @@ if __name__ == '__main__':
                       help="amount of steps per mm for each motor")
     parser.add_option('-r', '--resolution', type=float, default=1,
                       help="step in mm to generate intermediate points")
-    parser.add_option('-g', '--no-points-generation', action='store_true',
+    parser.add_option('-g', '--no-points-generation', default=False,
                       help="no generate points between actual and last point",
-                      default=False)
+                      action='store_true')
+    parser.add_option('-p', '--serial-port', type=str,
+                      help="name of the serial port")
     args, _ = parser.parse_args()
-    board = Board(args.width, args.height, args.steps_per_mm,
+
+    serial = Serial(args.serial_port)
+    board = Board(args.width, args.height, serial, args.steps_per_mm,
                   args.resolution, args.no_points_generation)
+
+    if args.init_point:
+        args.init_point = Point(**[int(n) for n in args.init_point.split(',')])
+
     app = App(board, args.init_point)
     app.master.title(prog_name)
     app.mainloop()

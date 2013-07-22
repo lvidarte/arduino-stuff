@@ -4,6 +4,7 @@
 import Tkinter as tk
 import math
 import serial
+import time
 
 
 def drange(start, stop, step=1):
@@ -21,9 +22,9 @@ class Serial(object):
         else:
             self.conn = None
 
-    def send(self, value):
+    def send(self, msg):
         if self.conn:
-            print value
+            self.conn.write(msg)
 
 
 class Point(object):
@@ -53,13 +54,14 @@ class Board(object):
 
     def __init__(self, width, height, serial,
                  steps_per_mm=51.2, resolution=1,
-                 no_points_generation=False):
+                 no_points_generation=False, time=0.1):
         self.width = width
         self.height = height
         self.serial = serial
         self.steps_per_mm = steps_per_mm
         self.resolution = resolution
         self.no_points_generation = no_points_generation
+        self.time = time
         self.points = []
         self.canvas = None
 
@@ -71,13 +73,16 @@ class Board(object):
                     self._add_point(p)
         self._add_point(point)
 
+
     def _add_point(self, point):
         point_from = self.get_last_point()
         if self.canvas:
             self.draw_point(point)
+            self.canvas.update()
         self.points.append(point)
         self.send(point, point_from)
         print(self.get_log(point, point_from))
+        time.sleep(self.time)
 
     def draw_point(self, point):
         if self.points:
@@ -116,8 +121,8 @@ class Board(object):
 
     def send(self, point, point_from=None):
         s0, s1 = self.get_relative_steps(point, point_from)
-        value = "s%d,%d\0" % (s0, s1)
-        self.serial.send(value)
+        msg = "s%d,%d\0" % (s0, s1)
+        self.serial.send(msg)
 
     def get_log(self, point, point_from=None):
         h0, h1 = self.get_hypot(point)
@@ -182,16 +187,18 @@ if __name__ == '__main__':
                       help="amount of steps per mm for each motor")
     parser.add_option('-r', '--resolution', type=float, default=1,
                       help="step in mm to generate intermediate points")
-    parser.add_option('-g', '--no-points-generation', default=False,
+    parser.add_option('-n', '--no-points-generation', default=False,
                       help="no generate points between actual and last point",
                       action='store_true')
-    parser.add_option('-p', '--serial-port', type=str,
+    parser.add_option('-p', '--port', type=str,
                       help="name of the serial port")
+    parser.add_option('-t', '--time', type=float,
+                      help="seconds between point drawing")
     args, _ = parser.parse_args()
 
-    serial = Serial(args.serial_port)
-    board = Board(args.width, args.height, serial, args.steps_per_mm,
-                  args.resolution, args.no_points_generation)
+    serial_ = Serial(args.port)
+    board = Board(args.width, args.height, serial_, args.steps_per_mm,
+                  args.resolution, args.no_points_generation, args.time)
 
     if args.init_point:
         args.init_point = Point(**[int(n) for n in args.init_point.split(',')])

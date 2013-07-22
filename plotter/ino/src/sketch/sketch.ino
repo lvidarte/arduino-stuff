@@ -1,6 +1,15 @@
+#include <Stepper.h>
+
+const int stepsPerRevolution = 24;
+
+Stepper motor0(stepsPerRevolution, 6, 7, 8, 9);
+Stepper motor1(stepsPerRevolution, 10, 11, 12, 13);
+
 void setup()
 {
     Serial.begin(9600);
+    motor0.setSpeed(60);
+    motor1.setSpeed(60);
 }
 
 void loop()
@@ -11,6 +20,8 @@ void loop()
         Serial.print(motors[0]);
         Serial.print(",");
         Serial.println(motors[1]);
+        motor0.step(motors[0]);
+        //motor1.step(motors[1]);
     }
 }
 

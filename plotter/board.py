@@ -150,7 +150,8 @@ class App(tk.Frame):
                 distance = self.board.get_distance(p_to, p_from)
                 self.update_status(distance)
                 self.console_log(distance)
-                self.serial_send(distance)
+                if i:
+                    self.serial_send(distance)
 
     def draw_point(self, point, color='black'):
         self.canvas.create_rectangle(

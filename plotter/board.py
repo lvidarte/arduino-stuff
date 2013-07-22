@@ -125,10 +125,14 @@ class App(tk.Frame):
 
     def create_events(self):
         self.canvas.bind_all('<Button-1>', self.add_point)
+        self.canvas.bind_all('<Motion>', self.show_position)
 
     def init_board(self, init_point):
         self.board.add(init_point)
         self.update()
+
+    def show_position(self, event):
+        self.master.title("Pointer at (%s, %s)" % (event.x, event.y))
 
     def add_point(self, event):
         point = Point(event.x, event.y)

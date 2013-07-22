@@ -16,15 +16,20 @@ def drange(start, stop, step=1):
 
 class Serial(object):
 
-    def __init__(self, port=None):
-        if port is not None:
-            self.conn = serial.Serial(port, 9600)
-        else:
-            self.conn = None
+    def __init__(self, port=None, sleep=0.1):
+        self.port = port
+        self.sleep = sleep
+        self.conn = self.connect()
+
+    def connect(self):
+        if self.port is not None:
+            return serial.Serial(self.port, 9600)
+        return None
 
     def send(self, msg):
         if self.conn:
             self.conn.write(msg)
+        time.sleep(self.sleep)
 
 
 class Point(object):
@@ -47,53 +52,32 @@ class Point(object):
         return points
 
     def __repr__(self):
-        return "(%.2f, %.2f)" % (self.x, self.y)
+        return "Point(%.2f, %.2f)" % (self.x, self.y)
 
 
 class Board(object):
 
-    def __init__(self, width, height, serial,
-                 steps_per_mm=51.2, resolution=1,
-                 no_points_generation=False, time=0.1):
+    def __init__(self, width, height, steps_per_mm=51.2, resolution=1,
+                 no_points_generation=False):
         self.width = width
         self.height = height
-        self.serial = serial
         self.steps_per_mm = steps_per_mm
         self.resolution = resolution
         self.no_points_generation = no_points_generation
-        self.time = time
         self.points = []
-        self.canvas = None
+        self.last_line = []
 
-    def add_point(self, point):
-        if self.no_points_generation == False:
-            last_point = self.get_last_point()
-            if last_point:
-                for p in point.get_points_from(last_point, self.resolution):
-                    self._add_point(p)
-        self._add_point(point)
-
-
-    def _add_point(self, point):
-        point_from = self.get_last_point()
-        if self.canvas:
-            self.draw_point(point)
-            self.canvas.update()
-        self.points.append(point)
-        self.send(point, point_from)
-        print(self.get_log(point, point_from))
-        time.sleep(self.time)
-
-    def draw_point(self, point):
+    def add(self, point):
         if self.points:
-            color = 'black'
-        else:
-            color = 'red'
-        size = 2
-        self.canvas.create_rectangle(
-            point.x, point.y,
-            point.x + size, point.y + size,
-            width=0, fill=color)
+            self.last_line = [self.points[-1]]
+            if self.no_points_generation == False:
+                for p in point.get_points_from(self.points[-1], self.resolution):
+                    self._add(p)
+        self._add(point)
+
+    def _add(self, point):
+        self.last_line.append(point)
+        self.points.append(point)
 
     def get_hypot(self, point):
         h0 = math.hypot(point.x, point.y)
@@ -106,38 +90,28 @@ class Board(object):
         s1 = h1 * self.steps_per_mm
         return (s0, s1)
 
-    def get_relative_steps(self, point, point_from):
-        s0, s1 = self.get_absolute_steps(point)
-        if point_from:
+    def get_relative_steps(self, point_to, point_from=None):
+        s0, s1 = self.get_absolute_steps(point_to)
+        if point_from is not None:
             s0_from, s1_from = self.get_absolute_steps(point_from)
             s0 -= s0_from
             s1 -= s1_from
         return (s0, s1)
 
-    def get_last_point(self):
-        if len(self.points):
-            return self.points[-1]
-        return None
-
-    def send(self, point, point_from=None):
-        s0, s1 = self.get_relative_steps(point, point_from)
-        msg = "s%d,%d\0" % (s0, s1)
-        self.serial.send(msg)
-
-    def get_log(self, point, point_from=None):
-        h0, h1 = self.get_hypot(point)
-        s0, s1 = self.get_relative_steps(point, point_from)
-        args = (point, h0, h1, s0, s1)
-        str = "Point %s :: Hypots (%.2f, %.2f) :: Relative steps (%d, %d)"
-        return str % args
+    def get_distance(self, point, point_from=None):
+        return {'from' : point_from,
+                'to'   : point,
+                'hypot': self.get_hypot(point),
+                'steps': self.get_relative_steps(point, point_from)}
 
 
 class App(tk.Frame):
 
-    def __init__(self, board, init_point=None):
+    def __init__(self, board, serial, init_point):
         tk.Frame.__init__(self)
         self.grid()
         self.board = board
+        self.serial = serial
         self.create_widgets()
         self.create_events()
         self.init_board(init_point)
@@ -153,23 +127,48 @@ class App(tk.Frame):
         self.canvas.bind_all('<Button-1>', self.add_point)
 
     def init_board(self, init_point):
-        self.board.canvas = self.canvas
-        if init_point is None:
-            point = Point(self.board.width / 2, 100)
-        else:
-            point = Point(*[int(n) for n in init_point.split(',')])
-        self.board.add_point(point)
-        self.update_status(point)
+        self.board.add(init_point)
+        self.update()
 
     def add_point(self, event):
         point = Point(event.x, event.y)
-        point_from = self.board.get_last_point()
-        self.board.add_point(point)
-        self.update_status(point, point_from)
+        self.board.add(point)
+        self.update()
 
-    def update_status(self, point, point_from=None):
-        text = self.board.get_log(point, point_from)
+    def update(self):
+        for i, p_to in enumerate(self.board.last_line):
+            if i > 0 or len(self.board.last_line) == 1:
+                self.draw_point(p_to)
+                if i:
+                    p_from = self.board.last_line[i-1]
+                else:
+                    p_from = None
+                distance = self.board.get_distance(p_to, p_from)
+                self.update_status(distance)
+                self.console_log(distance)
+                self.serial_send(distance)
+
+    def draw_point(self, point, color='black'):
+        self.canvas.create_rectangle(
+            point.x, point.y,
+            point.x + 2, point.y + 2,
+            width=0, fill=color)
+        self.canvas.update()
+
+    def update_status(self, distance):
+        msg = "{to} :: Hypot({hypot[0]:.1f}, {hypot[1]:.1f}) :: " +\
+              "RelativeSteps({steps[0]:.0f}, {steps[1]:.0f})"
+        text = msg.format(**distance)
         self.status.config(text=text)
+        self.status.update()
+
+    def console_log(self, distance):
+        msg = "{to} :: RelativeSteps({steps[0]:.0f}, {steps[1]:.0f})"
+        print msg.format(**distance)
+
+    def serial_send(self, distance):
+        msg = "s{0:.0f},{1:.0f}\0".format(*distance['steps'])
+        self.serial.send(msg)
 
 
 if __name__ == '__main__':
@@ -183,26 +182,27 @@ if __name__ == '__main__':
                       help="board height")
     parser.add_option('-i', '--init-point', type=str,
                       help="init board point")
-    parser.add_option('-s', '--steps-per-mm', type=float, default=51.2,
+    parser.add_option('-S', '--steps-per-mm', type=float, default=51.2,
                       help="amount of steps per mm for each motor")
     parser.add_option('-r', '--resolution', type=float, default=1,
                       help="step in mm to generate intermediate points")
     parser.add_option('-n', '--no-points-generation', default=False,
                       help="no generate points between actual and last point",
                       action='store_true')
-    parser.add_option('-p', '--port', type=str,
+    parser.add_option('-p', '--port', type=str, default=None,
                       help="name of the serial port")
-    parser.add_option('-t', '--time', type=float,
-                      help="seconds between point drawing")
+    parser.add_option('-s', '--sleep', type=float, default=0.1,
+                      help="seconds to sleep between serial sends")
     args, _ = parser.parse_args()
 
-    serial_ = Serial(args.port)
-    board = Board(args.width, args.height, serial_, args.steps_per_mm,
-                  args.resolution, args.no_points_generation, args.time)
-
+    board = Board(args.width, args.height, args.steps_per_mm,
+                  args.resolution, args.no_points_generation)
+    serial_ = Serial(args.port, args.sleep)
     if args.init_point:
-        args.init_point = Point(**[int(n) for n in args.init_point.split(',')])
+        init_point = Point(**[int(n) for n in args.init_point.split(',')])
+    else:
+        init_point = Point(args.width / 2, 100)
 
-    app = App(board, args.init_point)
+    app = App(board, serial_, init_point)
     app.master.title(prog_name)
     app.mainloop()

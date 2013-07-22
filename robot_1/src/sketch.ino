@@ -1,7 +1,7 @@
 #include <AFMotor.h>
 
-#define trigPin A0
-#define echoPin A1
+#define TRIG_PIN A0
+#define ECHO_PIN A1
 #define SPEED 200
 
 
@@ -12,15 +12,14 @@ AF_DCMotor motor_right(2, MOTOR12_2KHZ);
 void setup()
 {
     randomSeed(analogRead(0));
-    pinMode(trigPin, OUTPUT);
-    pinMode(echoPin, INPUT);
+    pinMode(TRIG_PIN, OUTPUT);
+    pinMode(ECHO_PIN, INPUT);
     motor_left.setSpeed(SPEED);
     motor_right.setSpeed(SPEED);
 }
 
 void loop()
 {
-    int rvalue;
     int distance = get_distance();
     if (distance > 40 || distance <= 0) {
         forward();
@@ -61,16 +60,16 @@ void turn() {
     delay(500);
     if (random(0, 2)) {
         backward();
-        delay(random(1, 5) * 250);
+        delay(random(1, 4) * 300);
         stop();
         delay(500);
     }
     if (random(0, 2)) {
         right();
-        delay(random(1, 5) * 250);
+        delay(random(2, 5) * 500);
     } else {
         left();
-        delay(random(1, 5) * 250);
+        delay(random(2, 5) * 500);
     }
     stop();
     delay(500);
@@ -79,10 +78,10 @@ void turn() {
 long _get_distance()
 {
     long duration, distance;
-    digitalWrite(trigPin, HIGH);
+    digitalWrite(TRIG_PIN, HIGH);
     delayMicroseconds(2000);
-    digitalWrite(trigPin, LOW);
-    duration = pulseIn(echoPin, HIGH);
+    digitalWrite(TRIG_PIN, LOW);
+    duration = pulseIn(ECHO_PIN, HIGH);
     distance = (duration/2) * 0.03435;
     return distance;
 }

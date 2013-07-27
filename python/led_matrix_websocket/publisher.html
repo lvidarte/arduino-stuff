@@ -7,7 +7,7 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
-            var ws = new WebSocket("ws://10.0.7.167:8888/publisher");
+            var ws = new WebSocket("ws://127.0.0.1:8888/publisher");
             ws.onmessage = function(event) {
                 var data = event.data.split('\n');
                 var action = data[0]

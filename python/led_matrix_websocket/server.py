@@ -1,7 +1,12 @@
 from tornado import options, ioloop, web, websocket
 
+USB_PORT = '/dev/ttyACM0'
+ADDR = '127.0.0.1'
+PORT = 8888
+
+
 import serial
-conn = serial.Serial('/dev/ttyACM0', 9600)
+conn = serial.Serial(USB_PORT, 9600)
 
 import os.path
 import re
@@ -114,9 +119,9 @@ if __name__ == '__main__':
         (r'/publisher', PublisherWebSocketHandler),
         (r'/', PublisherHandler),
         ], static_path=ROOT_DIR, debug=True, enable_pretty_logging=True)
-    application.listen(8888, address='0.0.0.0')
+    application.listen(PORT, address=ADDR)
     options.parse_command_line()
-    logging.info('Starting server')
+    logging.info('Starting server at %s:%s' % (ADDR, PORT))
     Glob.publisher.start()
     Glob.arduino_check_state.start()
     ioloop.IOLoop.instance().start()

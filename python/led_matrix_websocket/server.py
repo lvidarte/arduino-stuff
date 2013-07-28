@@ -1,7 +1,7 @@
 from tornado import options, ioloop, web, websocket
 
 USB_PORT = '/dev/ttyACM0'
-ADDR = '127.0.0.1'
+ADDR = '192.168.2.99'
 PORT = 8888
 
 
@@ -14,11 +14,18 @@ import threading
 import time
 import unicodedata
 import logging
+import feedparser
 
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 MSG_SENT = 'SENT\n%s\n%s\n%s'
 MSG_ADDED = 'ADDED\n%s\n%s\n%s'
+
+
+FEEDS = {
+    'EI': 'http://www.pagina12.com.ar/diario/rss/principal.xml',
+    'UN': 'http://www.pagina12.com.ar/diario/rss/ultimas_noticias.xml'
+}
 
 
 def publisher():
@@ -34,9 +41,39 @@ def publisher():
                                  Glob.last_sent_message[2])
                 else:
                     Glob.last_sent_message = ('', '', '')
+                    get_feeds()
                 for client in Glob.clients:
                     client.write_message(MSG_SENT % Glob.last_sent_message)
         time.sleep(5)
+
+
+def get_feeds():
+    for name, url in FEEDS.items():
+        d = feedparser.parse(url)
+        for entry in d['entries']:
+            message = parse_message("~%s" % entry['title'])
+            msg = (Glob.count, 'SERVER', message)
+            Glob.queue.append(msg)
+            Glob.count += 1
+            for client in Glob.clients:
+                client.write_message(MSG_ADDED % msg)
+            logging.info('Message received from %s: %s',
+                         'SERVER', message)
+
+
+def parse_message(message):
+    """ * Only printable ascii chars (in range from 32 to 126)
+        * Remove extra spaces
+        * 64 chars length
+    """
+    _ = message.strip()
+    _ = re.sub(' +', ' ', _)
+    _ = unicodedata.normalize('NFKD', _).encode('ascii', 'ignore')
+    _ = "".join([c for c in _ if ord(c) >= 32 and ord(c) <= 126])
+    if len(_) > 64:
+        _ = _[:64]
+    _ = _ + ' '
+    return _
 
 
 def check_state():
@@ -80,7 +117,7 @@ class PublisherWebSocketHandler(websocket.WebSocketHandler):
             logging.info('Websocket opened from %s', self.request.remote_ip)
 
     def on_message(self, message):
-        message = self.parse_message(message)
+        message = parse_message(message)
         if message:
             with Glob.lock:
                 msg = (Glob.count, self.request.remote_ip, message)
@@ -98,19 +135,6 @@ class PublisherWebSocketHandler(websocket.WebSocketHandler):
                 logging.info('Websocket closed from %s',
                              self.request.remote_ip)
 
-    def parse_message(self, message):
-        """ * Only printable ascii chars (in range from 32 to 126)
-            * Remove extra spaces
-            * 64 chars length
-        """
-        _ = message.strip()
-        _ = re.sub(' +', ' ', _)
-        _ = unicodedata.normalize('NFKD', _).encode('ascii', 'ignore')
-        _ = "".join([c for c in _ if ord(c) >= 32 and ord(c) <= 126])
-        if len(_) > 64:
-            _ = _[:64]
-        _ = _ + ' '
-        return _
 
 
 if __name__ == '__main__':

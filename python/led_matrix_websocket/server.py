@@ -1,14 +1,7 @@
 from tornado import options, ioloop, web, websocket
-
-USB_PORT = '/dev/ttyACM0'
-ADDR = '192.168.2.100'
-PORT = 8888
-MSG_LEN = 512
-
+from config import ADDR, PORT, USB_PORT
 
 import serial
-conn = serial.Serial(USB_PORT, 9600)
-
 import os.path
 import re
 import threading
@@ -18,6 +11,7 @@ import logging
 import feedparser
 
 
+MSG_LEN = 512
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 MSG_SENT = 'SENT\n%s\n%s\n%s'
 MSG_ADDED = 'ADDED\n%s\n%s\n%s'
@@ -27,6 +21,8 @@ FEEDS = {
     #'EI': 'http://www.pagina12.com.ar/diario/rss/principal.xml',
     'UN': 'http://www.pagina12.com.ar/diario/rss/ultimas_noticias.xml'
 }
+
+conn = serial.Serial(USB_PORT, 9600)
 
 
 def publisher():
@@ -119,7 +115,7 @@ class Glob:
 class PublisherHandler(web.RequestHandler):
 
     def get(self):
-        self.render('publisher.html')
+        self.render('publisher.html', host_port="%s:%s" % (ADDR, PORT))
 
 
 class PublisherWebSocketHandler(websocket.WebSocketHandler):

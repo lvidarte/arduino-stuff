@@ -7,7 +7,7 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
-            var ws = new WebSocket("ws://192.168.2.100:8888/publisher");
+            var ws = new WebSocket("ws://{{ host_port }}/publisher");
             var msg_len = 512;
             $('#chars-left').html(msg_len);
             $('#message').attr('maxlenght', msg_len);

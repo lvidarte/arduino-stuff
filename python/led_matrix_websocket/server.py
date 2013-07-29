@@ -1,8 +1,9 @@
 from tornado import options, ioloop, web, websocket
 
 USB_PORT = '/dev/ttyACM0'
-ADDR = '192.168.2.99'
+ADDR = '192.168.2.100'
 PORT = 8888
+MSG_LEN = 512
 
 
 import serial
@@ -23,7 +24,7 @@ MSG_ADDED = 'ADDED\n%s\n%s\n%s'
 
 
 FEEDS = {
-    'EI': 'http://www.pagina12.com.ar/diario/rss/principal.xml',
+    #'EI': 'http://www.pagina12.com.ar/diario/rss/principal.xml',
     'UN': 'http://www.pagina12.com.ar/diario/rss/ultimas_noticias.xml'
 }
 
@@ -33,45 +34,31 @@ def publisher():
     while True:
         if Glob.arduino_ready:
             with Glob.lock:
-                if Glob.queue:
-                    Glob.last_sent_message = Glob.queue.pop(0)
+                message = Glob.get_next_message()
+                if message:
+                    Glob.last_sent_message = message
                     conn.write(Glob.last_sent_message[2] + '\0')
                     logging.info('Message from %s sent to Arduino: %s',
                                  Glob.last_sent_message[1],
                                  Glob.last_sent_message[2])
                 else:
                     Glob.last_sent_message = ('', '', '')
-                    get_feeds()
                 for client in Glob.clients:
                     client.write_message(MSG_SENT % Glob.last_sent_message)
         time.sleep(5)
 
 
-def get_feeds():
-    for name, url in FEEDS.items():
-        d = feedparser.parse(url)
-        for entry in d['entries']:
-            message = parse_message("~%s" % entry['title'])
-            msg = (Glob.count, 'SERVER', message)
-            Glob.queue.append(msg)
-            Glob.count += 1
-            for client in Glob.clients:
-                client.write_message(MSG_ADDED % msg)
-            logging.info('Message received from %s: %s',
-                         'SERVER', message)
-
-
 def parse_message(message):
     """ * Only printable ascii chars (in range from 32 to 126)
         * Remove extra spaces
-        * 64 chars length
+        * MSG_LEN chars length
     """
     _ = message.strip()
     _ = re.sub(' +', ' ', _)
     _ = unicodedata.normalize('NFKD', _).encode('ascii', 'ignore')
     _ = "".join([c for c in _ if ord(c) >= 32 and ord(c) <= 126])
-    if len(_) > 64:
-        _ = _[:64]
+    if len(_) > MSG_LEN:
+        _ = _[:MSG_LEN]
     _ = _ + ' '
     return _
 
@@ -90,12 +77,43 @@ def check_state():
 class Glob:
     queue = []
     clients = []
+    feeds = []
     last_sent_message = None
     lock = threading.Lock()
     count = 0
     publisher = threading.Thread(target=publisher)
     arduino_ready = False
     arduino_check_state = threading.Thread(target=check_state)
+
+    @staticmethod
+    def add_message(message, from_):
+        message_ = (Glob.count, from_, message)
+        Glob.queue.append(message_)
+        Glob.count += 1
+        Glob.send_to_clients(message_)
+
+    @staticmethod
+    def get_next_message():
+        if Glob.queue:
+            return Glob.queue.pop(0)
+        if Glob.feeds:
+            Glob.add_message(Glob.feeds.pop(0), from_='SERVER')
+            return Glob.queue.pop(0)
+        Glob.read_feeds()
+
+    @staticmethod
+    def read_feeds():
+        for source, url in FEEDS.items():
+            d = feedparser.parse(url)
+            for entry in d['entries']:
+                feed = parse_message("~%s: %s" % (source, entry['title']))
+                Glob.feeds.append(feed)
+
+    @staticmethod
+    def send_to_clients(message):
+        for client in Glob.clients:
+            client.write_message(MSG_ADDED % message)
+        logging.info('Message received from %s: %s', message[1], message[2])
 
 
 class PublisherHandler(web.RequestHandler):
@@ -120,13 +138,8 @@ class PublisherWebSocketHandler(websocket.WebSocketHandler):
         message = parse_message(message)
         if message:
             with Glob.lock:
-                msg = (Glob.count, self.request.remote_ip, message)
-                Glob.queue.append(msg)
-                Glob.count += 1
-                for client in Glob.clients:
-                    client.write_message(MSG_ADDED % msg)
-                logging.info('Message received from %s: %s',
-                             self.request.remote_ip, message)
+                from_ = self.request.remote_ip
+                Glob.add_message(message, from_)
 
     def on_close(self):
         with Glob.lock:

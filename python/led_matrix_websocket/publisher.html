@@ -7,7 +7,10 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
-            var ws = new WebSocket("ws://192.168.2.99:8888/publisher");
+            var ws = new WebSocket("ws://192.168.2.100:8888/publisher");
+            var msg_len = 512;
+            $('#chars-left').html(msg_len);
+            $('#message').attr('maxlenght', msg_len);
             ws.onmessage = function(event) {
                 var data = event.data.split('\n');
                 var action = data[0]
@@ -38,7 +41,7 @@
                 return false;
             });
             $('#message').keyup(function() {
-                $('#chars-left').html(64 - $(this).val().length);
+                $('#chars-left').html(msg_len - $(this).val().length);
             });
         });
     </script>
@@ -60,8 +63,8 @@
 </head>
 <body>
     <form id="sender" class="box">
-        Your message: <input type="text" id="message" maxlength="64" style="width:400px">
-        <span class="help">(<span id="chars-left">64</span> chars left)</span>
+        Your message: <input type="text" id="message" style="width:500px">
+        <span class="help">(<span id="chars-left"></span> chars left)</span>
         <div class="help"><br>Only <a href="http://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters">printable ascii chars</a>. For marquee put '~' as first char.</div>
     </form>
     <div class="box">

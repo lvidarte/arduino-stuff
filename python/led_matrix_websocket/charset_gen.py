@@ -1058,9 +1058,9 @@ CHARSET = (_SPACE, _33, _34, _35, _36, _37, _38, _39,
            _123, _124, _125, _126
           )
 
-print "#define LEN %s" % len(CHARSET)
+print "#define CHARSET_LEN %s" % len(CHARSET)
 print ""
-print "const char charset [LEN][5] = {"
+print "const char charset [CHARSET_LEN][5] = {"
 for c in CHARSET:
     s = ''.join(['%s%s%s%s%s' % e for e in c]) + '00000'
     hexs = []

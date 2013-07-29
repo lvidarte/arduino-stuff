@@ -7,9 +7,10 @@
 const int cols[5] = {9, 10, 11, 12, 13};
 const int rows[7] = {2, 3, 4, 5, 6, 7, 8};
 
-#define LEN 95
+#define MSG_LEN 513
+#define CHARSET_LEN 95
 
-const char charset [LEN][5] = {
+const char charset [CHARSET_LEN][5] = {
     {0x00, 0x00, 0x00, 0x00, 0x00},
     {0x21, 0x08, 0x42, 0x00, 0x80},
     {0x52, 0x80, 0x00, 0x00, 0x00},
@@ -18,8 +19,8 @@ const char charset [LEN][5] = {
     {0xce, 0x44, 0x44, 0x4e, 0x60},
     {0x32, 0x10, 0xd9, 0x49, 0xa0},
     {0x21, 0x00, 0x00, 0x00, 0x00},
-    {0x41, 0x08, 0x42, 0x11, 0x00},
     {0x11, 0x08, 0x42, 0x10, 0x40},
+    {0x41, 0x08, 0x42, 0x11, 0x00},
     {0x05, 0x5d, 0xf7, 0x54, 0x00},
     {0x01, 0x09, 0xf2, 0x10, 0x00},
     {0x00, 0x00, 0x06, 0x32, 0x00},
@@ -107,7 +108,6 @@ const char charset [LEN][5] = {
     {0x00, 0x31, 0x51, 0x80, 0x00},
 };
 
-
 void setup() {
     for (int i = 2; i <= 13; i++) {
         pinMode(i, OUTPUT);
@@ -183,13 +183,13 @@ void marquee_chars(const char *c1, const char *c2, int times) {
 }
 
 void loop() {
-    char message[66];
+    char message[MSG_LEN];
     char last_char = ' ';
     int index = 0;
     int is_marquee = 0;
 
     Serial.print('1');
-    while (index < 65 && last_char != '\0') {
+    while (index < MSG_LEN - 1 && last_char != '\0') {
         if (Serial.available()) {
             last_char = Serial.read();
             if (index == 0 && last_char == '~') {
@@ -214,11 +214,11 @@ void loop() {
                 }
                 int k1 = (int) message[j] - 32;
                 int k2 = (int) message[(j < len_message - 1) ? j + 1 : 0] - 32;
-                marquee_chars(charset[k1], charset[k2], 50);
+                marquee_chars(charset[k1], charset[k2], 25);
             } else {
                 // static, fixed
                 int k = (int) message[j] - 32;
-                fixed_char(charset[k], 200);
+                fixed_char(charset[k], 100);
                 fixed_char(charset[0], 50); // space
             }
 

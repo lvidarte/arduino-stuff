@@ -1,5 +1,5 @@
 /* vim: set ft=c : */
-
+#
 /**
  *
  */
@@ -176,7 +176,8 @@ void marquee_chars(const char *c1, const char *c2, int times) {
         pos_0--;
         offset1++;
 
-        for (int j = 0; j < times; j++) {
+        int rtimes = (frame == 0) ? times * 2: times;
+        for (int j = 0; j < rtimes; j++) {
             draw_char(buffer);
         }
     }
@@ -214,7 +215,7 @@ void loop() {
                 }
                 int k1 = (int) message[j] - 32;
                 int k2 = (int) message[(j < len_message - 1) ? j + 1 : 0] - 32;
-                marquee_chars(charset[k1], charset[k2], 25);
+                marquee_chars(charset[k1], charset[k2], 40);
             } else {
                 // static, fixed
                 int k = (int) message[j] - 32;

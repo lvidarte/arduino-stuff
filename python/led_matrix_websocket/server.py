@@ -9,6 +9,7 @@ import time
 import unicodedata
 import logging
 import feedparser
+import random
 
 
 MSG_LEN = 512
@@ -99,6 +100,7 @@ class Glob:
             for entry in d['entries']:
                 feed = parse_message("~%s: %s" % (source, entry['title']))
                 Glob.feeds.append(feed)
+        random.shuffle(Glob.feeds)
 
     @staticmethod
     def send_to_clients(message):

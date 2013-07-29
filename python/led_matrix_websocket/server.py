@@ -1,5 +1,5 @@
 from tornado import options, ioloop, web, websocket
-from config import ADDR, PORT, USB_PORT
+from config import ADDR, PORT, USB_PORT, FEEDS
 
 import serial
 import os.path
@@ -16,11 +16,6 @@ ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 MSG_SENT = 'SENT\n%s\n%s\n%s'
 MSG_ADDED = 'ADDED\n%s\n%s\n%s'
 
-
-FEEDS = {
-    #'EI': 'http://www.pagina12.com.ar/diario/rss/principal.xml',
-    'UN': 'http://www.pagina12.com.ar/diario/rss/ultimas_noticias.xml'
-}
 
 conn = serial.Serial(USB_PORT, 9600)
 

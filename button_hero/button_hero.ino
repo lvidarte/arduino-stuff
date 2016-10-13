@@ -1,11 +1,18 @@
 /* vim: set ft=c : */
 
 /**
- *  
+ * Author: Leo Vidarte <http://nerdlabs.com.ar>
  *
- *  Connect leds on 3, 6, 9 and 11
- *  Connect switches on 2, 4, 7 and 8
- *  Connect speaker on 12
+ * This is free software:
+ * you can redistribute it and/or modify it
+ * under the terms of the GPL version 3
+ * as published by the Free Software Foundation.
+ */
+
+/**
+ * Connect leds on 3, 6, 9 and 11
+ * Connect switches on 2, 4, 7 and 8
+ * Connect speaker on 12
  */
 
 const int totalLeds = 4;

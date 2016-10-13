@@ -1,6 +1,15 @@
 /* vim: set ft=c : */
 
 /**
+ * Author: Leo Vidarte <http://nerdlabs.com.ar>
+ *
+ * This is free software:
+ * you can redistribute it and/or modify it
+ * under the terms of the GPL version 3
+ * as published by the Free Software Foundation.
+ */
+
+/**
  * @see http://www.arduino.cc/playground/learning/4051
  *
  * Connect mux 4051 with pines s0, s1 and s2 on 2, 3 and 4 resp.
